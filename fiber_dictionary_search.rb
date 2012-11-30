@@ -29,6 +29,7 @@ class FiberDictionarySearch
 
     while true
       word_list            = read_seg_fiber.resume
+
       break unless  read_seg_fiber.alive?
 
       word_list            = delete_short_words_fiber.resume(word_list)
@@ -59,15 +60,7 @@ class FiberDictionarySearch
   #--- fiber: delete_short_words
   def create_delete_short_words_fiber
     Fiber.new do |word_list|
-      #puts "word_list.first = #{word_list.first}"
-
       while true
-        #long_words  = word_list.reject { |w| w.size < 3 }
-        #
-        #next_word_list  = Fiber.yield(long_words)
-        #binding.pry
-        #raise 'ERROR' if word_list.class.eql? 'Range'
-        #puts "word_list.first = #{word_list.first}"
         next_word_list  = Fiber.yield word_list.select_long_words
 
         word_list       = next_word_list
@@ -77,12 +70,18 @@ class FiberDictionarySearch
 
   #-- fiber: list_word_pairs
   def create_word_pairs_fiber
+    #alphabet_words = lambda do |words, alpha| words.select { |w| w.start_with? alpha } end
+    swap_tail = lambda { |word| word[0..-3] + word[-2, 2].reverse }
+
+    puts '--- lamb ---'
     Fiber.new do |word_list|
       while true
         word_pairs = []
 
         word_list.each do |word|
-          rev_word = word[0..-3] + word[-2, 2].reverse
+          #rev_word = word[0..-3] + word[-2, 2].reverse
+
+          rev_word = swap_tail [word]
 
           next if rev_word < word
 
