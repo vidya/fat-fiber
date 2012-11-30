@@ -1,6 +1,12 @@
 require 'pry'
 require 'fiber'
 
+class Array
+  def select_alphabet_words(alpha)
+     self.select { |w| w.start_with? alpha }
+  end
+end
+
 class FiberDictionarySearch
   attr_accessor :word_pairs
 
@@ -30,7 +36,8 @@ class FiberDictionarySearch
 
   #--- fiber: read_segments
   def create_read_segments_fiber(filename)
-    alphabet_words = lambda { |words, alpha| words.select { |w| w.start_with? alpha } }
+    puts '--- kitty ---'
+    #alphabet_words = lambda do |words, alpha| words.select { |w| w.start_with? alpha } end
 
     Fiber.new do
       all_words = File.readlines(filename).map { |ln| ln.chomp }
@@ -38,7 +45,7 @@ class FiberDictionarySearch
       ('a'..'z').each do |alphabet|
         puts "#{alphabet}"
 
-        Fiber.yield alphabet_words[all_words, alphabet]
+        Fiber.yield all_words.select_alphabet_words alphabet
       end
     end
   end
