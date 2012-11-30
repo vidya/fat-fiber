@@ -30,17 +30,15 @@ class FiberDictionarySearch
 
   #--- fiber: read_segments
   def create_read_segments_fiber(filename)
-    starts_with = lambda do |words, alpha|
-      words.select { |word| word.start_with? alpha }
-    end
+    alphabet_words = lambda { |words, alpha| words.select { |w| w.start_with? alpha } }
 
     Fiber.new do
       all_words = File.readlines(filename).map { |ln| ln.chomp }
 
-      ('a'..'z').each do |letter|
-        puts "letter: #{letter}"
+      ('a'..'z').each do |alphabet|
+        puts "#{alphabet}"
 
-        Fiber.yield starts_with[all_words, letter]
+        Fiber.yield alphabet_words[all_words, alphabet]
       end
     end
   end
