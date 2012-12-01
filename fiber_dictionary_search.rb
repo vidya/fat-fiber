@@ -92,26 +92,9 @@ class FiberDictionarySearch
       word_pairs
     end
 
-    puts "--- angry sparrow ---"
-    Fiber.new do |word_list|
-      loop do
-        #word_pairs = []
-        #
-        #word_list.each do |word|
-        #  rev_word = swap_tail.call word
-        #
-        #  next if rev_word < word
-        #
-        #  next if rev_word.eql? word
-        #
-        #  word_pairs << [word, rev_word] if word_list.include? rev_word
-        #end
-
-        #next_word_list  = Fiber.yield(word_pairs)
-        next_word_list  = Fiber.yield choose_word_pairs.call(word_list)
-
-        word_list       = next_word_list
-      end
+    puts "--- happy dove ---"
+    FatFiber.new do |word_list|
+      FatFiber.repeat_block { word_list  = Fiber.yield choose_word_pairs.call(word_list) }
     end
   end
 end
