@@ -17,7 +17,6 @@ class FatFiber < Fiber
   end
 
   def self.yield_each_value(hash)
-    #binding.pry
     Raise "expected: Hash, got: #{hash.class}" unless hash.is_a? Hash
 
     hash.each_value { |obj| Fiber.yield obj }
@@ -91,7 +90,6 @@ class FiberDictionarySearch
       word_pairs
     end
 
-    #puts "--- happy dove ---"
     FatFiber.new do |word_list|
       FatFiber.repeat_block { word_list  = Fiber.yield choose_word_pairs.call(word_list) }
     end
