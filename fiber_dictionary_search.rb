@@ -19,7 +19,6 @@ class FatFiber < Fiber
   def self.yield_each_value(hash)
     Raise "expected: Hash, got: #{hash.class}" unless hash.is_a? Hash
 
-    #binding.pry
     hash.each_value { |obj| Fiber.yield obj }
   end
 end
@@ -47,8 +46,7 @@ class FiberDictionarySearch
 
       word_list            = delete_short_words_fiber.resume(word_list)
 
-      swap_pairs = word_pairs_fiber.resume(word_list)
-      swap_pairs.each { |pair| word_pairs << pair }
+      word_pairs += word_pairs_fiber.resume(word_list)
     end
 
     word_pairs
@@ -58,13 +56,10 @@ class FiberDictionarySearch
   def create_read_segments_fiber(filename)
     puts '--- yield_each doe ---'
 
-    Fiber.new do
-      all_words = File.readlines(filename).map { |ln| ln.chomp }
+    FatFiber.new do
+      alpha_group = File.readlines(filename).group_by { |ln| ln.chomp![0] }
 
-      word_groups = all_words.group_by { |w|  w[0] }
-
-      #word_groups.each { |alpha, word_group| puts "#{alpha}"; Fiber.yield word_group }
-      FatFiber.yield_each_value word_groups
+      FatFiber.yield_each_value alpha_group
     end
   end
 
@@ -79,7 +74,6 @@ class FiberDictionarySearch
   def create_word_pairs_fiber
     swap_tail = ->(word) { word[0..-3] + word[-2, 2].reverse }
 
-    puts '--- lamb ---'
     Fiber.new do |word_list|
       loop do
         word_pairs = []
