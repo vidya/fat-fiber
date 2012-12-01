@@ -17,6 +17,7 @@ class FatFiber < Fiber
   end
 
   def self.yield_each_value(hash)
+    #binding.pry
     Raise "expected: Hash, got: #{hash.class}" unless hash.is_a? Hash
 
     hash.each_value { |obj| Fiber.yield obj }
@@ -54,12 +55,14 @@ class FiberDictionarySearch
 
   #--- fiber: read_segments
   def create_read_segments_fiber(filename)
-    puts '--- yield_each doe ---'
+    puts '--- groopy doe ---'
+    groups_by_first_alpha = ->{ File.readlines(filename).group_by { |ln| ln.chomp![0] } }
 
     FatFiber.new do
-      alpha_group = File.readlines(filename).group_by { |ln| ln.chomp![0] }
+      #alpha_group = File.readlines(filename).group_by { |ln| ln.chomp![0] }
 
-      FatFiber.yield_each_value alpha_group
+      #FatFiber.yield_each_value alpha_group
+      FatFiber.yield_each_value groups_by_first_alpha.call
     end
   end
 
