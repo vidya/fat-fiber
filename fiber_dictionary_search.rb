@@ -11,6 +11,19 @@ class Array
   end
 end
 
+class FatFiber < Fiber
+  def self.repeat_block
+    loop { yield }
+  end
+
+  def self.yield_each_value(hash)
+    Raise "expected: Hash, got: #{hash.class}" unless hash.is_a? Hash
+
+    #binding.pry
+    hash.each_value { |obj| Fiber.yield obj }
+  end
+end
+
 class FiberDictionarySearch
   attr_accessor :word_pairs
 
@@ -27,7 +40,7 @@ class FiberDictionarySearch
     
     word_pairs = []
 
-    while true
+    loop do
       word_list            = read_seg_fiber.resume
 
       break unless  read_seg_fiber.alive?
@@ -43,45 +56,36 @@ class FiberDictionarySearch
 
   #--- fiber: read_segments
   def create_read_segments_fiber(filename)
-    puts '--- doe ---'
-    #alphabet_words = lambda do |words, alpha| words.select { |w| w.start_with? alpha } end
+    puts '--- yield_each doe ---'
 
     Fiber.new do
       all_words = File.readlines(filename).map { |ln| ln.chomp }
 
-      ('a'..'z').each do |alphabet|
-        puts "#{alphabet}"
+      word_groups = all_words.group_by { |w|  w[0] }
 
-        Fiber.yield all_words.select_alphabet_words alphabet
-      end
+      #word_groups.each { |alpha, word_group| puts "#{alpha}"; Fiber.yield word_group }
+      FatFiber.yield_each_value word_groups
     end
   end
 
   #--- fiber: delete_short_words
   def create_delete_short_words_fiber
-    Fiber.new do |word_list|
-      while true
-        next_word_list  = Fiber.yield word_list.select_long_words
-
-        word_list       = next_word_list
-      end
+    FatFiber.new do |word_list|
+      FatFiber.repeat_block { word_list = Fiber.yield(word_list.select_long_words) }
     end
   end
 
   #-- fiber: list_word_pairs
   def create_word_pairs_fiber
-    #alphabet_words = lambda do |words, alpha| words.select { |w| w.start_with? alpha } end
-    swap_tail = lambda { |word| word[0..-3] + word[-2, 2].reverse }
+    swap_tail = ->(word) { word[0..-3] + word[-2, 2].reverse }
 
     puts '--- lamb ---'
     Fiber.new do |word_list|
-      while true
+      loop do
         word_pairs = []
 
         word_list.each do |word|
-          #rev_word = word[0..-3] + word[-2, 2].reverse
-
-          rev_word = swap_tail [word]
+          rev_word = swap_tail.call word
 
           next if rev_word < word
 
