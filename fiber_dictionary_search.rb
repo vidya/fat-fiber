@@ -41,11 +41,11 @@ class FiberDictionarySearch
     word_pairs = []
 
     loop do
-      word_list            = read_seg_fiber.resume
+      word_list = read_seg_fiber.resume
 
-      break unless  read_seg_fiber.alive?
+      break unless read_seg_fiber.alive?
 
-      word_list            = delete_short_words_fiber.resume(word_list)
+      word_list = delete_short_words_fiber.resume(word_list)
 
       word_pairs += word_pairs_fiber.resume(word_list)
     end
@@ -55,7 +55,6 @@ class FiberDictionarySearch
 
   #--- fiber: read_segments
   def create_read_segments_fiber(filename)
-    puts '--- active groopy doe ---'
     groups_by_first_alpha = -> do File.readlines(filename).group_by { |ln| ln.chomp![0] } end
 
     FatFiber.new do
@@ -92,7 +91,7 @@ class FiberDictionarySearch
       word_pairs
     end
 
-    puts "--- happy dove ---"
+    #puts "--- happy dove ---"
     FatFiber.new do |word_list|
       FatFiber.repeat_block { word_list  = Fiber.yield choose_word_pairs.call(word_list) }
     end
