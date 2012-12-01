@@ -55,21 +55,20 @@ class FiberDictionarySearch
 
   #--- fiber: read_segments
   def create_read_segments_fiber(filename)
-    puts '--- groopy doe ---'
-    groups_by_first_alpha = ->{ File.readlines(filename).group_by { |ln| ln.chomp![0] } }
+    puts '--- active groopy doe ---'
+    groups_by_first_alpha = -> do File.readlines(filename).group_by { |ln| ln.chomp![0] } end
 
     FatFiber.new do
-      #alpha_group = File.readlines(filename).group_by { |ln| ln.chomp![0] }
-
-      #FatFiber.yield_each_value alpha_group
       FatFiber.yield_each_value groups_by_first_alpha.call
     end
   end
 
   #--- fiber: delete_short_words
   def create_delete_short_words_fiber
+    select_long_words = ->(word_list) { word_list.select_long_words }
+
     FatFiber.new do |word_list|
-      FatFiber.repeat_block { word_list = Fiber.yield(word_list.select_long_words) }
+      FatFiber.repeat_block { word_list = Fiber.yield select_long_words.call(word_list) }
     end
   end
 
@@ -77,21 +76,40 @@ class FiberDictionarySearch
   def create_word_pairs_fiber
     swap_tail = ->(word) { word[0..-3] + word[-2, 2].reverse }
 
+    choose_word_pairs = ->(word_list) do
+      word_pairs = []
+
+      word_list.each do |word|
+        rev_word = swap_tail.call word
+
+        next if rev_word < word
+
+        next if rev_word.eql? word
+
+        word_pairs << [word, rev_word] if word_list.include? rev_word
+      end
+
+      word_pairs
+    end
+
+    puts "--- angry sparrow ---"
     Fiber.new do |word_list|
       loop do
-        word_pairs = []
+        #word_pairs = []
+        #
+        #word_list.each do |word|
+        #  rev_word = swap_tail.call word
+        #
+        #  next if rev_word < word
+        #
+        #  next if rev_word.eql? word
+        #
+        #  word_pairs << [word, rev_word] if word_list.include? rev_word
+        #end
 
-        word_list.each do |word|
-          rev_word = swap_tail.call word
+        #next_word_list  = Fiber.yield(word_pairs)
+        next_word_list  = Fiber.yield choose_word_pairs.call(word_list)
 
-          next if rev_word < word
-
-          next if rev_word.eql? word
-
-          word_pairs << [word, rev_word] if word_list.include? rev_word
-        end
-
-        next_word_list  = Fiber.yield(word_pairs)
         word_list       = next_word_list
       end
     end
