@@ -72,25 +72,16 @@ class FiberDictionarySearch
 
   #-- fiber: list_word_pairs
   def create_word_pairs_fiber
-    swap_tail = ->(word) { word[0..-3] + word[-2, 2].reverse }
+    swap_tail = -> word { word[0..-3] + word[-2, 2].reverse }
 
-    choose_word_pairs = ->(word_list) do
-      word_pairs = []
+    choose_word_pairs = -> word_list do
+      word_list.reject! { |w| swap_tail.call(w).eql? w }
 
-      word_list.each do |word|
-        rev_word = swap_tail.call word
+      word_list.select! { |w| word_list.include? swap_tail.call(w) }
 
-        next if (rev_word < word) || (rev_word.eql? word)
+      word_list.reject! { |w| swap_tail.call(w) < w }
 
-        word_pairs << [word, rev_word] if word_list.include? rev_word
-      end
-
-      #--------------------
-      rev_words = word_list.map(&:swap_tail)
-      binding.pry
-      #--------------------
-
-      word_pairs
+      word_list.map { |w| [w, swap_tail.call(w)] }
     end
 
     FatFiber.new do |word_list|
