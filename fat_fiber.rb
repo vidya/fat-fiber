@@ -75,7 +75,8 @@ class FiberDictionarySearch
     swap_tail = -> word { word[0..-3] + word[-2, 2].reverse }
 
     choose_word_pairs = -> word_list do
-      word_list.reject! { |w| swap_tail.call(w).eql? w }
+      #word_list.reject! { |w| swap_tail.call(w).eql? w }
+      word_list.reject! { |w| w[-2].eql? w[-1]}
 
       word_list.select! { |w| word_list.include? swap_tail.call(w) }
 
