@@ -85,6 +85,11 @@ class FiberDictionarySearch
         word_pairs << [word, rev_word] if word_list.include? rev_word
       end
 
+      #--------------------
+      rev_words = word_list.map(&:swap_tail)
+      binding.pry
+      #--------------------
+
       word_pairs
     end
 
