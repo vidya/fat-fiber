@@ -77,10 +77,8 @@ class FiberDictionarySearch
     choose_word_pairs = -> word_list do
       word_list.reject! { |w| w[-2].eql? w[-1] }
 
-
       word_list.select! { |w| word_list.include? swap_tail.call(w) }
 
-      #word_list.reject! { |w| swap_tail.call(w) < w }
       word_list.reject! { |w| w[-1] < w[-2] }
 
       word_list.map { |w| [w, swap_tail.call(w)] }
