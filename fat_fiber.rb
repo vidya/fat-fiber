@@ -54,7 +54,7 @@ class FiberDictionarySearch
 
   #--- fiber: read_segments
   def create_read_segments_fiber(filename)
-    groups_by_first_alpha = -> do File.readlines(filename).group_by { |ln| ln.chomp![0] } end
+    groups_by_first_alpha = -> do File.readlines(filename).map(&:chomp!).group_by { |ln| ln.chars.first } end
 
     FatFiber.new do
       FatFiber.yield_each_value groups_by_first_alpha.call
@@ -81,7 +81,7 @@ class FiberDictionarySearch
 
       word_list.reject! { |w| w[-1] < w[-2] }
 
-      word_list.map { |w| [w, swap_tail.call(w)] }
+      word_list.map     { |w| [w, swap_tail.call(w)] }
     end
 
     FatFiber.new do |word_list|
